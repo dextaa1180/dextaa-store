@@ -1,0 +1,33 @@
+{
+  "name": "dextaa-store",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c cyan,magenta \"npm run dev -w frontend\" \"npm run api -w backend\"",
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:backend": "npm run api -w backend",
+    "api": "npm run api -w backend",
+    "build": "npm run build -w frontend",
+    "lint": "npm run lint -w frontend",
+    "preview": "npm run preview -w frontend",
+    "db:generate": "npm run db:generate -w backend",
+    "db:push": "npm run db:push -w backend",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:studio": "npm run db:studio -w backend",
+    "db:validate": "npm run db:validate -w backend",
+    "db:check": "npm run db:check -w backend",
+    "db:seed:admin": "npm run db:seed:admin -w backend",
+    "db:seed:catalog": "npm run db:seed:catalog -w backend",
+    "docker:db:up": "docker compose up -d postgres adminer",
+    "docker:db:down": "docker compose down",
+    "docker:db:logs": "docker compose logs -f postgres",
+    "docker:db:reset": "docker compose down -v"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

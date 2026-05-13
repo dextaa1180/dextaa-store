@@ -1,0 +1,340 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  UNPAID
+  WAITING
+  PAID
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+enum RequestStatus {
+  NEW
+  IN_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @db.VarChar(160)
+  email        String     @unique @db.VarChar(180)
+  whatsapp     String?    @unique @db.VarChar(32)
+  passwordHash String     @map("password_hash")
+  role         UserRole   @default(CUSTOMER)
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer     Customer?
+
+  @@index([role, status])
+  @@map("users")
+}
+
+model Category {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique @db.VarChar(120)
+  slug      String    @unique @db.VarChar(140)
+  sortOrder Int       @default(0) @map("sort_order")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  products  Product[]
+
+  @@index([isActive, sortOrder])
+  @@map("categories")
+}
+
+model Product {
+  id               String           @id @default(uuid()) @db.Uuid
+  categoryId       String           @map("category_id") @db.Uuid
+  title            String           @db.VarChar(180)
+  slug             String           @unique @db.VarChar(200)
+  publisher        String           @db.VarChar(140)
+  shortDescription String?          @map("short_description")
+  description      String?
+  badge            String?          @db.VarChar(80)
+  accentColor      String?          @map("accent_color") @db.VarChar(20)
+  coverImageUrl    String?          @map("cover_image_url")
+  coverImagePublicId String?        @map("cover_image_public_id")
+  status           ProductStatus    @default(DRAFT)
+  sortOrder        Int              @default(0) @map("sort_order")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  category         Category         @relation(fields: [categoryId], references: [id])
+  supports         ProductSupport[]
+  media            ProductMedia[]
+  options          ProductOption[]
+  orderItems       OrderItem[]
+  reviews          CustomerReview[]
+
+  @@index([categoryId, status, sortOrder])
+  @@map("products")
+}
+
+model ProductSupport {
+  id        String  @id @default(uuid()) @db.Uuid
+  productId String  @map("product_id") @db.Uuid
+  label     String  @db.VarChar(120)
+  sortOrder Int     @default(0) @map("sort_order")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_supports")
+}
+
+model ProductMedia {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  mediaUrl  String   @map("media_url")
+  altText   String?  @map("alt_text") @db.VarChar(180)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_media")
+}
+
+model ProductOption {
+  id          String      @id @default(uuid()) @db.Uuid
+  productId   String      @map("product_id") @db.Uuid
+  serverName  String?     @map("server_name") @db.VarChar(120)
+  name        String      @db.VarChar(220)
+  perk        String?     @db.VarChar(120)
+  guestPrice  Int         @map("guest_price")
+  memberPrice Int         @map("member_price")
+  stock       Int         @default(0)
+  isActive    Boolean     @default(true) @map("is_active")
+  sortOrder   Int         @default(0) @map("sort_order")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+
+  @@index([productId, isActive, sortOrder])
+  @@map("product_options")
+}
+
+model PaymentGroup {
+  id        String          @id @default(uuid()) @db.Uuid
+  name      String          @unique @db.VarChar(120)
+  sortOrder Int             @default(0) @map("sort_order")
+  isActive  Boolean         @default(true) @map("is_active")
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  methods   PaymentMethod[]
+
+  @@map("payment_groups")
+}
+
+model PaymentMethod {
+  id             String       @id @default(uuid()) @db.Uuid
+  paymentGroupId String       @map("payment_group_id") @db.Uuid
+  name           String       @db.VarChar(120)
+  logoUrl        String?      @map("logo_url")
+  providerCode   String?      @map("provider_code") @db.VarChar(80)
+  isActive       Boolean      @default(true) @map("is_active")
+  sortOrder      Int          @default(0) @map("sort_order")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  group          PaymentGroup @relation(fields: [paymentGroupId], references: [id])
+  payments       Payment[]
+
+  @@unique([paymentGroupId, name])
+  @@map("payment_methods")
+}
+
+model Customer {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @unique @map("user_id") @db.Uuid
+  name      String?  @db.VarChar(160)
+  whatsapp  String   @unique @db.VarChar(32)
+  email     String?  @db.VarChar(180)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  orders    Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id               String             @id @default(uuid()) @db.Uuid
+  invoiceCode      String             @unique @map("invoice_code") @db.VarChar(40)
+  customerId       String?            @map("customer_id") @db.Uuid
+  customerName     String?            @map("customer_name") @db.VarChar(160)
+  customerWhatsapp String             @map("customer_whatsapp") @db.VarChar(32)
+  status           OrderStatus        @default(PENDING)
+  paymentStatus    PaymentStatus      @default(UNPAID) @map("payment_status")
+  subtotal         Int
+  total            Int
+  promoCode        String?            @map("promo_code") @db.VarChar(80)
+  notes            String?
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer         Customer?          @relation(fields: [customerId], references: [id])
+  items            OrderItem[]
+  payments         Payment[]
+  events           OrderStatusEvent[]
+  reviews          CustomerReview[]
+
+  @@index([invoiceCode])
+  @@index([customerWhatsapp])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String         @id @default(uuid()) @db.Uuid
+  orderId         String         @map("order_id") @db.Uuid
+  productId       String         @map("product_id") @db.Uuid
+  productOptionId String?        @map("product_option_id") @db.Uuid
+  productTitle    String         @map("product_title") @db.VarChar(180)
+  optionName      String         @map("option_name") @db.VarChar(220)
+  quantity        Int            @default(1)
+  unitPrice       Int            @map("unit_price")
+  totalPrice      Int            @map("total_price")
+  gameUserId      String?        @map("game_user_id") @db.VarChar(120)
+  gameServer      String?        @map("game_server") @db.VarChar(120)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product        @relation(fields: [productId], references: [id])
+  productOption   ProductOption? @relation(fields: [productOptionId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id                String         @id @default(uuid()) @db.Uuid
+  orderId           String         @map("order_id") @db.Uuid
+  paymentMethodId   String?        @map("payment_method_id") @db.Uuid
+  amount            Int
+  status            PaymentStatus  @default(WAITING)
+  providerReference String?        @map("provider_reference") @db.VarChar(160)
+  paidAt            DateTime?      @map("paid_at") @db.Timestamptz(6)
+  expiredAt         DateTime?      @map("expired_at") @db.Timestamptz(6)
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method            PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([orderId, status])
+  @@map("payments")
+}
+
+model OrderStatusEvent {
+  id        String      @id @default(uuid()) @db.Uuid
+  orderId   String      @map("order_id") @db.Uuid
+  status    OrderStatus
+  title     String      @db.VarChar(160)
+  message   String?
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_status_events")
+}
+
+model CustomerReview {
+  id           String       @id @default(uuid()) @db.Uuid
+  orderId      String?      @map("order_id") @db.Uuid
+  productId    String?      @map("product_id") @db.Uuid
+  invoiceCode  String?      @map("invoice_code") @db.VarChar(40)
+  maskedInvoice String      @map("masked_invoice") @db.VarChar(40)
+  customerName String?      @map("customer_name") @db.VarChar(120)
+  rating       Int          @db.SmallInt
+  message      String
+  status       ReviewStatus @default(PENDING)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  order        Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  product      Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([productId, status, createdAt])
+  @@map("customer_reviews")
+}
+
+model ContactRequest {
+  id          String        @id @default(uuid()) @db.Uuid
+  formType    String        @map("form_type") @db.VarChar(80)
+  requestType String        @map("request_type") @db.VarChar(120)
+  name        String        @db.VarChar(160)
+  whatsapp    String        @db.VarChar(32)
+  message     String
+  status      RequestStatus @default(NEW)
+  adminNotes  String?       @map("admin_notes")
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@map("contact_requests")
+}
+
+model Banner {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String   @db.VarChar(180)
+  imageUrl  String   @map("image_url")
+  linkUrl   String?  @map("link_url")
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([isActive, sortOrder])
+  @@map("banners")
+}
+
+model PromoCode {
+  id              String    @id @default(uuid()) @db.Uuid
+  code            String    @unique @db.VarChar(80)
+  description     String?
+  discountAmount  Int       @default(0) @map("discount_amount")
+  discountPercent Decimal   @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  startsAt        DateTime? @map("starts_at") @db.Timestamptz(6)
+  endsAt          DateTime? @map("ends_at") @db.Timestamptz(6)
+  usageLimit      Int?      @map("usage_limit")
+  usedCount       Int       @default(0) @map("used_count")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("promo_codes")
+}
