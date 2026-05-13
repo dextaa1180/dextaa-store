@@ -232,8 +232,8 @@ a {
 
 .dropdown-nav {
   position: absolute;
-  top: 72px;
-  right: max(16px, calc((100vw - 1180px) / 2));
+  top: calc(100% + 14px);
+  right: 0;
   z-index: 40;
   width: min(260px, calc(100vw - 28px));
   display: grid;
@@ -243,6 +243,10 @@ a {
   padding: 16px 10px;
   background: #080d1d;
   box-shadow: 0 26px 70px rgba(2, 6, 23, 0.34);
+}
+
+.mobile-drawer-nav {
+  display: none;
 }
 
 .dropdown-nav::before {
@@ -2867,6 +2871,14 @@ a {
     border: 0;
     background: rgba(2, 6, 23, 0.48);
     cursor: pointer;
+  }
+
+  .desktop-dropdown-nav {
+    display: none;
+  }
+
+  .mobile-drawer-nav {
+    display: grid;
   }
 
   .dropdown-nav {

@@ -44,6 +44,19 @@ export function SiteHeader({ onSearch }: SiteHeaderProps) {
             >
               <LayoutGrid size={20} />
             </button>
+            {menuOpen && (
+              <nav className="dropdown-nav desktop-dropdown-nav" aria-label="Navigasi utama">
+                <div className="nav-link-list">
+                  {navigation.map(({ label, href, icon: Icon }) => (
+                    <a href={href} key={label} onClick={() => setMenuOpen(false)}>
+                      <Icon size={18} />
+                      <span>{label}</span>
+                      <ArrowRight size={16} />
+                    </a>
+                  ))}
+                </div>
+              </nav>
+            )}
           </div>
           <button className="icon-button" aria-label="Notifikasi" type="button">
             <Bell size={18} />
@@ -81,7 +94,7 @@ export function SiteHeader({ onSearch }: SiteHeaderProps) {
             aria-label="Tutup navigasi"
             onClick={() => setMenuOpen(false)}
           />
-          <nav className="dropdown-nav" aria-label="Navigasi utama">
+          <nav className="dropdown-nav mobile-drawer-nav" aria-label="Navigasi utama">
             <div className="mobile-nav-title">Navigation</div>
             <div className="nav-link-list">
               {navigation.map(({ label, href, icon: Icon }) => (
