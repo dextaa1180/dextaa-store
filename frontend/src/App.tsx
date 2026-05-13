@@ -18,13 +18,15 @@ import { PriceListPage } from './pages/PriceListPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 import { ReviewsPage } from './pages/ReviewsPage'
 import { TrackingPage } from './pages/TrackingPage'
-import { fetchCatalog } from './services/catalog'
+import { fetchCatalog, searchCatalogProducts } from './services/catalog'
 import type { CatalogCategory, Product, RouteTarget } from './types/store'
 
 function App() {
   const [routePath, setRoutePath] = useState(window.location.pathname)
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(fallbackProducts)
   const [catalogCategories, setCatalogCategories] = useState<CatalogCategory[]>(buildCatalogCategories(fallbackProducts))
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchProducts, setSearchProducts] = useState<Product[] | undefined>()
   const normalizedRoutePath = useMemo(() => {
     if (routePath !== '/' && routePath.endsWith('/')) {
       return routePath.slice(0, -1)
@@ -77,8 +79,9 @@ function App() {
 
   const activeProduct = useMemo(() => {
     if (!normalizedRoutePath.startsWith('/produk/')) return undefined
-    return catalogProducts.find((product) => `/produk/${product.slug}` === normalizedRoutePath)
-  }, [catalogProducts, normalizedRoutePath])
+    return [...catalogProducts, ...(searchProducts ?? [])].find((product) => `/produk/${product.slug}` === normalizedRoutePath)
+  }, [catalogProducts, normalizedRoutePath, searchProducts])
+  const visibleCatalogProducts = searchProducts ?? catalogProducts
   const activeCatalogSlug = useMemo(() => {
     if (!normalizedRoutePath.startsWith(`${gameCatalogRoute}/`)) return undefined
     return normalizedRoutePath.slice(gameCatalogRoute.length + 1) || undefined
@@ -97,9 +100,39 @@ function App() {
   }
 
   const navigateTo = (path: string) => {
+    setSearchQuery('')
+    setSearchProducts(undefined)
     window.history.pushState({}, '', path)
     setRoutePath(path)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleCatalogSearch = async (query: string) => {
+    const trimmedQuery = query.trim()
+
+    if (!trimmedQuery) {
+      setSearchQuery('')
+      setSearchProducts(undefined)
+      window.history.pushState({}, '', '/')
+      setRoutePath('/')
+      window.setTimeout(() => {
+        document.getElementById('produk')?.scrollIntoView({ behavior: 'smooth' })
+      }, 0)
+      return
+    }
+
+    try {
+      const products = await searchCatalogProducts(trimmedQuery)
+      setSearchQuery(trimmedQuery)
+      setSearchProducts(products)
+      window.history.pushState({}, '', '/')
+      setRoutePath('/')
+      window.setTimeout(() => {
+        document.getElementById('produk')?.scrollIntoView({ behavior: 'smooth' })
+      }, 0)
+    } catch {
+      toastr.error('Pencarian katalog belum dapat dimuat.')
+    }
   }
 
   const backHome = () => {
@@ -137,12 +170,19 @@ function App() {
     if (normalizedRoutePath === '/register') return <AuthPage mode="register" />
     if (normalizedRoutePath === '/admin' || normalizedRoutePath === '/admin/login') return <AuthPage mode="admin" />
     if (normalizedRoutePath === '/admin/dashboard') return <AdminDashboardPage />
-    return <HomePage products={catalogProducts} categories={catalogCategories} onOpenProduct={openProduct} />
+    return (
+      <HomePage
+        products={visibleCatalogProducts}
+        categories={catalogCategories}
+        searchQuery={searchQuery}
+        onOpenProduct={openProduct}
+      />
+    )
   }
 
   return (
     <div className="app-shell">
-      {!isAdminRoute && <SiteHeader />}
+      {!isAdminRoute && <SiteHeader onSearch={handleCatalogSearch} />}
       {renderPage()}
       {!isAdminRoute && <SiteFooter />}
       {!isAdminRoute && <ChatCta />}

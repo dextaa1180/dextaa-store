@@ -1,10 +1,14 @@
 import { ArrowRight, Bell, LayoutGrid, Search, Sparkles } from 'lucide-react'
 import { useState } from 'react'
-import toastr from 'toastr'
 import { navigation } from '../data/storeData'
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  onSearch: (query: string) => void
+}
+
+export function SiteHeader({ onSearch }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [search, setSearch] = useState('')
 
   return (
     <header className="site-header">
@@ -19,18 +23,15 @@ export function SiteHeader() {
           </span>
         </a>
 
-        <form
-          className="navbar-search"
-          role="search"
-          aria-label="Cari layanan"
-          onSubmit={(event) => {
-            event.preventDefault()
-            toastr.info('Pencarian frontend siap disambungkan ke katalog backend.')
-          }}
+        <button
+          className="mobile-menu-trigger"
+          type="button"
+          aria-label="Buka navigasi"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((isOpen) => !isOpen)}
         >
-          <Search size={18} />
-          <input placeholder="Cari game, voucher, atau layanan..." />
-        </form>
+          <LayoutGrid size={20} />
+        </button>
 
         <div className="header-actions">
           <div className="nav-menu">
@@ -43,17 +44,6 @@ export function SiteHeader() {
             >
               <LayoutGrid size={20} />
             </button>
-            {menuOpen && (
-              <nav className="dropdown-nav" aria-label="Navigasi utama">
-                {navigation.map(({ label, href, icon: Icon }) => (
-                  <a href={href} key={label} onClick={() => setMenuOpen(false)}>
-                    <Icon size={18} />
-                    <span>{label}</span>
-                    <ArrowRight size={16} />
-                  </a>
-                ))}
-              </nav>
-            )}
           </div>
           <button className="icon-button" aria-label="Notifikasi" type="button">
             <Bell size={18} />
@@ -65,7 +55,54 @@ export function SiteHeader() {
             Daftar
           </a>
         </div>
+
+        <form
+          className="navbar-search"
+          role="search"
+          aria-label="Cari layanan"
+          onSubmit={(event) => {
+            event.preventDefault()
+            onSearch(search)
+          }}
+        >
+          <Search size={18} />
+          <input
+            placeholder="Cari game, voucher, atau layanan..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </form>
       </div>
+      {menuOpen && (
+        <>
+          <button
+            className="nav-backdrop"
+            type="button"
+            aria-label="Tutup navigasi"
+            onClick={() => setMenuOpen(false)}
+          />
+          <nav className="dropdown-nav" aria-label="Navigasi utama">
+            <div className="mobile-nav-title">Navigation</div>
+            <div className="nav-link-list">
+              {navigation.map(({ label, href, icon: Icon }) => (
+                <a href={href} key={label} onClick={() => setMenuOpen(false)}>
+                  <Icon size={18} />
+                  <span>{label}</span>
+                  <ArrowRight size={16} />
+                </a>
+              ))}
+            </div>
+            <div className="mobile-nav-auth">
+              <a className="ghost-button" href="/login" onClick={() => setMenuOpen(false)}>
+                Masuk
+              </a>
+              <a className="primary-button" href="/register" onClick={() => setMenuOpen(false)}>
+                Daftar
+              </a>
+            </div>
+          </nav>
+        </>
+      )}
     </header>
   )
 }

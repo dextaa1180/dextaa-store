@@ -10,11 +10,13 @@ import type { CatalogCategory } from '../types/store'
 type HomePageProps = {
   categories: CatalogCategory[]
   products: Product[]
+  searchQuery?: string
   onOpenProduct: (product: Product) => void
 }
 
-export function HomePage({ categories, products, onOpenProduct }: HomePageProps) {
+export function HomePage({ categories, products, searchQuery, onOpenProduct }: HomePageProps) {
   const [activeCategorySlug, setActiveCategorySlug] = useState('all')
+  const trimmedSearchQuery = searchQuery?.trim()
 
   const visibleProducts = useMemo(() => {
     if (activeCategorySlug === 'all') return products
@@ -61,28 +63,32 @@ export function HomePage({ categories, products, onOpenProduct }: HomePageProps)
 
       <section className="popular-section section-surface" id="produk" aria-labelledby="popular-title">
         <h2 className="popular-title" id="popular-title">
-          Populer Saat Ini
+          {trimmedSearchQuery ? `Hasil pencarian "${trimmedSearchQuery}"` : 'Populer Saat Ini'}
         </h2>
 
-        <div className="popular-grid">
-          {products.map((product) => (
-            <button className="popular-card" key={product.title} type="button" onClick={() => onOpenProduct(product)}>
-              <img className="popular-bg" src={product.image} alt="" />
-              <div className="popular-shade" />
-              <img className="popular-thumb" src={product.image} alt="" />
-              <div className="popular-copy">
-                <span>{product.publisher}</span>
-                <h3>
-                  {product.title
-                    .replace(' Diamond', '')
-                    .replace(' Genesis Crystal', '')
-                    .replace(' Starter', '')
-                    .replace(' Express', '')}
-                </h3>
-              </div>
-            </button>
-          ))}
-        </div>
+        {products.length ? (
+          <div className="popular-grid">
+            {products.map((product) => (
+              <button className="popular-card" key={product.title} type="button" onClick={() => onOpenProduct(product)}>
+                <img className="popular-bg" src={product.image} alt="" />
+                <div className="popular-shade" />
+                <img className="popular-thumb" src={product.image} alt="" />
+                <div className="popular-copy">
+                  <span>{product.publisher}</span>
+                  <h3>
+                    {product.title
+                      .replace(' Diamond', '')
+                      .replace(' Genesis Crystal', '')
+                      .replace(' Starter', '')
+                      .replace(' Express', '')}
+                  </h3>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="catalog-empty">Produk tidak ditemukan di katalog database.</div>
+        )}
       </section>
 
       <section className="catalog-section section-surface" id="semua-games" aria-label="Katalog produk">
