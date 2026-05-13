@@ -232,8 +232,8 @@ a {
 
 .dropdown-nav {
   position: absolute;
-  top: calc(100% + 14px);
-  right: 0;
+  top: 72px;
+  right: max(16px, calc((100vw - 1180px) / 2));
   z-index: 40;
   width: min(260px, calc(100vw - 28px));
   display: grid;
