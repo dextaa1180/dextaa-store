@@ -67,3 +67,13 @@ npm run db:validate
 npm run db:check
 npm run db:seed:admin
 ```
+
+## VPS deployment
+
+VPS deployment files and instructions live in:
+
+```text
+deploy/vps/README.md
+```
+
+The setup serves `frontend/dist` through Nginx and runs the Express API as a systemd service on `127.0.0.1:4000`.
