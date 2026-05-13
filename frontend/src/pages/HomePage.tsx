@@ -2,7 +2,6 @@ import { Clock3, CreditCard, Gamepad2, Headphones, ShieldCheck, Star, UserRound,
 import { useMemo, useState } from 'react'
 import { Autoplay } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import toastr from 'toastr'
 import { bannerSlides, faqs, reviews } from '../data/storeData'
 import { buildCatalogCategories, getProductCategorySlug } from '../data/gameCatalog'
 import type { Product } from '../types/store'
@@ -27,9 +26,8 @@ export function HomePage({ categories, products, onOpenProduct }: HomePageProps)
     return [{ id: 'all', name: 'Semua', slug: 'all', sortOrder: 0, productCount: products.length }, ...derived]
   }, [categories, products])
 
-  const handleCategoryChange = (slug: string, label: string) => {
+  const handleCategoryChange = (slug: string) => {
     setActiveCategorySlug(slug)
-    toastr.info(slug === 'all' ? 'Menampilkan semua layanan.' : `Filter: ${label}`)
   }
 
   return (
@@ -93,7 +91,7 @@ export function HomePage({ categories, products, onOpenProduct }: HomePageProps)
             <button
               className={category.slug === activeCategorySlug ? 'is-active' : ''}
               key={category.slug}
-              onClick={() => handleCategoryChange(category.slug, category.name)}
+              onClick={() => handleCategoryChange(category.slug)}
               type="button"
             >
               {category.name}

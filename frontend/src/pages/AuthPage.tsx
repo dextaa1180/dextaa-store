@@ -164,7 +164,6 @@ export function AuthPage({ mode }: AuthPageProps) {
           <div className="auth-links">
             {mode === 'login' && <a href="/register">Belum punya akun? Daftar</a>}
             {mode === 'register' && <a href="/login">Sudah punya akun? Masuk</a>}
-            {mode !== 'admin' && <a href="/admin/login">Masuk sebagai admin</a>}
             {mode === 'admin' && <a href="/login">Kembali ke login pelanggan</a>}
           </div>
         </form>
