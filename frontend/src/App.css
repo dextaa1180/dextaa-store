@@ -2785,15 +2785,47 @@ a {
   .header-top {
     min-height: 68px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     padding: 12px 0 10px;
   }
 
   .brand small,
-  .header-actions .ghost-button,
-  .header-actions .primary-button,
   .header-actions > .icon-button {
     display: none;
+  }
+
+  .header-actions {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 42px minmax(84px, 96px) minmax(84px, 96px);
+    justify-content: start;
+    gap: 8px;
+  }
+
+  .nav-menu {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .header-actions .ghost-button,
+  .header-actions .primary-button {
+    min-height: 38px;
+    width: 100%;
+    min-width: 0;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .header-actions .ghost-button {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .header-actions .primary-button {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .navbar-search {
@@ -2978,15 +3010,57 @@ a {
     padding-top: 24px;
   }
 
+  .popular-grid,
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
   .popular-card {
-    min-height: 104px;
-    grid-template-columns: 76px minmax(0, 1fr);
-    padding: 12px;
+    min-height: 88px;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 9px;
+    padding: 9px;
   }
 
   .popular-thumb {
-    width: 76px;
-    height: 64px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .popular-copy span {
+    font-size: 11px;
+  }
+
+  .popular-copy h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.16;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .catalog-card {
+    min-height: 232px;
+    border-radius: 14px;
+  }
+
+  .catalog-card-content {
+    inset: auto 8px 8px;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  .catalog-card h3 {
+    -webkit-line-clamp: 2;
+    font-size: 14px;
+  }
+
+  .catalog-card p {
+    font-size: 12px;
   }
 
   .stats-band {
